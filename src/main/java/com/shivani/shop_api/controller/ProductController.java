@@ -2,12 +2,10 @@
 package com.shivani.shop_api.controller;
 
 import com.shivani.shop_api.model.Product;
-import com.shivani.shop_api.repository.ProductRepository;
+import com.shivani.shop_api.service.ProductService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 
 import java.util.List;
 
@@ -15,111 +13,44 @@ import java.util.List;
 @RequestMapping("/products")
 public class ProductController {
 
-    // Repository for future MySQL operations
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    // Constructor injection
-    public ProductController(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
-    private long nextId = 3L;
-
-    // API 1: Get all products from MySQL
+    // GET: Retrieve all products
     @GetMapping
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productService.getAllProducts();
     }
 
-    
-    // API 2: Get product by ID from MySQL
+    // GET: Retrieve product by ID
     @GetMapping("/{id}")
     public Product getProductById(@PathVariable Long id) {
-
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Product not found"
-                ));
+        return productService.getProductById(id);
     }
 
-
-    // API 3: Create a product
-    
-    // API 3: Create a product in MySQL
+    // POST: Create a new product
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public synchronized Product createProduct(
-            @RequestBody Product product) {
-
-        if (product.getName() == null
-                || product.getName().isBlank()
-                || !Double.isFinite(product.getPrice())
-                || product.getPrice() < 0
-                || product.getStock() < 0) {
-
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Invalid product information"
-            );
-        }
-
-        // Let MySQL generate the product ID
-        product.setId(null);
-
-        // Save the product to MySQL
-        return productRepository.save(product);
+    public Product createProduct(@RequestBody Product product) {
+        return productService.createProduct(product);
     }
 
-    // API 4: Update an existing product in MySQL
+    // PUT: Update an existing product
     @PutMapping("/{id}")
     public Product updateProduct(
             @PathVariable Long id,
-            @RequestBody Product updatedProduct) {
+            @RequestBody Product product) {
 
-        // Validate incoming product information
-        if (updatedProduct.getName() == null
-                || updatedProduct.getName().isBlank()
-                || !Double.isFinite(updatedProduct.getPrice())
-                || updatedProduct.getPrice() < 0
-                || updatedProduct.getStock() < 0) {
-
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Invalid product information"
-            );
-        }
-
-        // Find the existing product in MySQL
-        Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Product not found"
-                ));
-
-        // Update the existing product's fields
-        existingProduct.setName(updatedProduct.getName());
-        existingProduct.setPrice(updatedProduct.getPrice());
-        existingProduct.setDescription(updatedProduct.getDescription());
-        existingProduct.setStock(updatedProduct.getStock());
-
-        // Save the updated product to MySQL
-        return productRepository.save(existingProduct);
+        return productService.updateProduct(id, product);
     }
 
-
-    // API 5: Delete a product by ID
-    
-@DeleteMapping("/{id}")
-@ResponseStatus(HttpStatus.NO_CONTENT)
-public void deleteProduct(@PathVariable Long id) {
-
-    Product existingProduct = productRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.NOT_FOUND,
-            "Product not found"
-        ));
-
-    productRepository.delete(existingProduct);
-}
+    // DELETE: Remove a product
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+    }
 }

@@ -6,7 +6,7 @@ import com.shivani.shop_api.service.ProductService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Page;
 import java.util.List;
 
 @RestController
@@ -24,6 +24,21 @@ public class ProductController {
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
+
+@GetMapping("/search")
+public List<Product> searchProducts(@RequestParam String name) {
+    return productService.searchProducts(name);
+}
+
+@GetMapping("/paginated")
+public Page<Product> getProductsPaginated(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "5") int size,
+        @RequestParam(defaultValue = "id") String sortBy) {
+
+    return productService.getProductsPaginated(page, size, sortBy);
+}
+
 
     // GET: Retrieve product by ID
     @GetMapping("/{id}")

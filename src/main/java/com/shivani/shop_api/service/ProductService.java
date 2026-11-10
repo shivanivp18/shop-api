@@ -7,6 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 
 @Service
@@ -21,6 +25,31 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
+
+public List<Product> searchProducts(String name) {
+    return productRepository.findByNameContainingIgnoreCase(name);
+}
+public Page<Product> getProductsPaginated(int page, int size, String sortBy) {
+    if (page < 0 || size < 1 || size > 100) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Invalid pagination parameters");
+    }
+
+    if (!List.of("id", "name", "price", "stock").contains(sortBy)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Invalid sorting field");
+    }
+
+    PageRequest pageable = PageRequest.of(
+        page,
+        size,
+        Sort.by(sortBy).ascending()
+    );
+
+    return productRepository.findAll(pageable);
+}
+
+
 
     public Product getProductById(Long id) {
         return productRepository.findById(id)

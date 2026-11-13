@@ -58,4 +58,40 @@ public AuthService(
         // Step 6: Save user in MySQL
         return userRepository.save(user);
     }
+
+    // Authenticate customer using email and password
+    public String login(LoginRequest request) {
+
+        // Step 1: Normalize customer email
+        String email = request.email()
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        // Step 2: Find customer in MySQL
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.UNAUTHORIZED,
+                                "Invalid email or password"
+                        )
+                );
+
+        // Step 3: Verify password using BCrypt
+        boolean passwordMatches = passwordEncoder.matches(
+                request.password(),
+                user.getPasswordHash()
+        );
+
+        // Step 4: Reject incorrect passwords
+        if (!passwordMatches) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid email or password"
+            );
+        }
+
+        // Step 5: Generate JWT after successful login
+        return jwtService.generateToken(user.getEmail());
+    }
+
 }

@@ -32,7 +32,7 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
-
+            }
     // Customer login endpoint
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
@@ -50,4 +50,3 @@ public class AuthController {
     }
 
     }
-}

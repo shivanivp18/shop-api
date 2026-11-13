@@ -1,6 +1,7 @@
 
 package com.shivani.shop_api.auth;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,23 +21,29 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
         http
-            // Disable CSRF for our stateless REST API
             .csrf(csrf -> csrf.disable())
 
-            // Configure endpoint permissions
             .authorizeHttpRequests(auth -> auth
 
-                // Anyone can register without logging in
-                .requestMatchers(
-                    HttpMethod.POST,
-                    "/api/auth/register"
+                // Allow Spring Boot to process error responses
+                .dispatcherTypeMatchers(
+                    DispatcherType.ERROR,
+                    DispatcherType.FORWARD
                 ).permitAll()
 
-                // All other requests require authentication
+                // Allow customer registration without login
+                
+.requestMatchers(
+    HttpMethod.POST,
+    "/api/auth/register",
+    "/api/auth/login"
+).permitAll()
+
+                // Protect other endpoints
                 .anyRequest().authenticated()
             );
 

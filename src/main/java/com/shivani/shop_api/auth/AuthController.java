@@ -32,5 +32,22 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+
+    // Customer login endpoint
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        String token = authService.login(request);
+
+        LoginResponse response = new LoginResponse(
+                token,
+                "Bearer",
+                3600
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
     }
 }

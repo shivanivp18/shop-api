@@ -29,8 +29,16 @@ public class ProductService {
 public List<Product> searchProducts(String name) {
     return productRepository.findByNameContainingIgnoreCase(name);
 }
-public Page<Product> getProductsPaginated(int page, int size, String sortBy) {
-    if (page < 0 || size < 1 || size > 100) {
+
+// Filter products by category (case-insensitive)
+public List<Product> getProductsByCategory(String category) {
+    return productRepository.findByCategoryIgnoreCase(category);
+}
+
+public Page<Product> getProductsPaginated(int page, int size, String sortBy)
+
+{
+   if (page < 0 || size < 1 || size > 100) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST, "Invalid pagination parameters");
     }
@@ -92,4 +100,13 @@ public Page<Product> getProductsPaginated(int page, int size, String sortBy) {
                 HttpStatus.BAD_REQUEST, "Invalid product information");
         }
     }
+// Get products within a price range
+public List<Product> getProductsByPriceRange(double minPrice, double maxPrice) {
+
+    if (minPrice < 0 || maxPrice < minPrice) {
+        throw new IllegalArgumentException("Invalid price range");
+    }
+
+    return productRepository.findByPriceBetween(minPrice, maxPrice);
+}
 }

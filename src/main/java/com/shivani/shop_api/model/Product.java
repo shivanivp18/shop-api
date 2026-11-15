@@ -20,18 +20,20 @@ public class Product {
     private String description;
     private int stock;
 
+    private String category;
+
     public Product() {
     }
 
-    public Product(Long id, String name, double price,
-                   String description, int stock) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.description = description;
-        this.stock = stock;
-    }
-
+   public Product(Long id, String name, double price,
+               String description, int stock, String category) {
+    this.id = id;
+    this.name = name;
+    this.price = price;
+    this.description = description;
+    this.stock = stock;
+    this.category = category;
+}
     public Long getId() {
         return id;
     }
@@ -71,4 +73,12 @@ public class Product {
     public void setStock(int stock) {
         this.stock = stock;
     }
+
+public String getCategory() {
+    return category;
+}
+
+public void setCategory(String category) {
+    this.category = category;
+}
 }

@@ -7,6 +7,14 @@ import com.shivani.shop_api.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import java.util.Map;
+
 import java.util.List;
 
 @RestController
@@ -29,7 +37,20 @@ public class ProductController {
 public List<Product> searchProducts(@RequestParam String name) {
     return productService.searchProducts(name);
 }
+// GET: Filter products by category
+@GetMapping("/category/{category}")
+public List<Product> getProductsByCategory(
+        @PathVariable String category) {
 
+    return productService.getProductsByCategory(category);
+}// Filter products by minimum and maximum price
+@GetMapping("/price")
+public List<Product> getProductsByPriceRange(
+        @RequestParam double minPrice,
+        @RequestParam double maxPrice) {
+
+    return productService.getProductsByPriceRange(minPrice, maxPrice);
+}
 @GetMapping("/paginated")
 public Page<Product> getProductsPaginated(
         @RequestParam(defaultValue = "0") int page,
@@ -68,4 +89,13 @@ public Page<Product> getProductsPaginated(
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
     }
+    // Handle invalid price ranges and other invalid arguments
+@ExceptionHandler(IllegalArgumentException.class)
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public Map<String, String> handleInvalidArgument(
+        IllegalArgumentException ex) {
+
+    return Map.of("error", ex.getMessage());
+        }
+
 }

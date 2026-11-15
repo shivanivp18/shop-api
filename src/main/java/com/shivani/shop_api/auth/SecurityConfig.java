@@ -6,14 +6,13 @@ import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -21,82 +20,98 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // JWT authentication filter
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // Constructor injection
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    // Password encoder used during registration and login
+    // BCrypt password hashing for registration and login
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Configure Spring Security
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
-            // Disable CSRF for our stateless REST API
+            // Disable CSRF for stateless REST APIs
+            .csrf(csrf -> csrf.disable())
 
-.csrf(csrf -> csrf.disable())
+            // JWT authentication does not use HTTP sessions
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
 
-// Return HTTP 401 when authentication is missing
-.exceptionHandling(exceptions -> exceptions
-    .authenticationEntryPoint((request, response, authException) -> {
-        response.sendError(
-            HttpStatus.UNAUTHORIZED.value(),
-            "Unauthorized"
-        );
-    })
-)
+            // Return 401 for unauthenticated requests
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(
+                    (request, response, authException) ->
+                        response.sendError(
+                            HttpStatus.UNAUTHORIZED.value(),
+                            "Unauthorized"
+                        )
+                )
+            )
 
-
-
-
-            // Configure endpoint permissions
             .authorizeHttpRequests(auth -> auth
 
-                // Allow Spring Boot error handling
+                // Allow Spring Boot internal error dispatches
                 .dispatcherTypeMatchers(
-                    DispatcherType.ERROR,
-                    DispatcherType.FORWARD
+                    DispatcherType.ERROR
                 ).permitAll()
 
-                // Allow registration and login without JWT
+                // Public registration and login
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/auth/register",
                     "/api/auth/login"
                 ).permitAll()
 
-                // Only ADMIN users can access admin endpoints
-.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Only ADMIN can create products
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/products",
+                    "/products/**"
+                ).hasRole("ADMIN")
 
-// Anyone can browse products
-.requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                // Only ADMIN can update products
+                .requestMatchers(
+                    HttpMethod.PUT,
+                    "/products",
+                    "/products/**"
+                ).hasRole("ADMIN")
 
-// All other endpoints require authentication
-.anyRequest().authenticated()
+                // Only ADMIN can delete products
+                .requestMatchers(
+                    HttpMethod.DELETE,
+                    "/products",
+                    "/products/**"
+                ).hasRole("ADMIN")
+
+                // Public product browsing
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/products",
+                    "/products/**"
+                ).permitAll()
+
+                // ADMIN-only endpoints
+                .requestMatchers(
+                    "/api/admin/**"
+                ).hasRole("ADMIN")
+
+                // All other endpoints require authentication
+                .anyRequest().authenticated()
             )
 
-            // Use stateless JWT authentication
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
-                )
-            )
-
-            // Run JWT filter before username/password authentication
+            // Validate JWT before username/password authentication
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
             );
-
 
         return http.build();
     }

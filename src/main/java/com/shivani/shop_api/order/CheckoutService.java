@@ -1,19 +1,21 @@
 
 package com.shivani.shop_api.order;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.shivani.shop_api.auth.User;
 import com.shivani.shop_api.auth.UserRepository;
 import com.shivani.shop_api.cart.CartItem;
 import com.shivani.shop_api.cart.CartService;
 import com.shivani.shop_api.model.Product;
 import com.shivani.shop_api.repository.ProductRepository;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 @Service
 public class CheckoutService {
@@ -55,11 +57,13 @@ public class CheckoutService {
                 cartService.getCartItems(customerEmail);
 
         // Step 3: Reject an empty cart
-        if (cartItems.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Cannot checkout an empty cart"
-            );
-        }
+        
+            if (cartItems.isEmpty()) {
+    throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST,
+        "Cannot checkout an empty cart"
+    );
+}
 
         // Step 4: Sort product IDs to reduce deadlock risk
         List<CartItem> sortedItems = cartItems.stream()

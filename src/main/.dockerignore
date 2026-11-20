@@ -1,0 +1,32 @@
+
+# Git files
+.git
+.gitignore
+
+# Maven build output
+target/
+
+# IDE settings
+.idea/
+.vscode/
+*.iml
+
+# macOS files
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment files and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Local test and coverage output
+coverage/
+test-results/
+
+# Documentation not needed for the build
+README.md

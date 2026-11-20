@@ -1,21 +1,23 @@
 
 package com.shivani.shop_api;
 
-import com.shivani.shop_api.model.Product;
-import com.shivani.shop_api.repository.ProductRepository;
-import com.shivani.shop_api.service.ProductService;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.shivani.shop_api.model.Product;
+import com.shivani.shop_api.repository.ProductRepository;
+import com.shivani.shop_api.service.ProductService;
 
 @ExtendWith(MockitoExtension.class)
 class ShopApiApplicationTests {
@@ -38,8 +40,10 @@ class ShopApiApplicationTests {
         testProduct.setStock(10);
     }
 
+    // TEST 1: Retrieve all products
     @Test
     void shouldGetAllProducts() {
+
         when(productRepository.findAll())
                 .thenReturn(List.of(testProduct));
 
@@ -51,8 +55,10 @@ class ShopApiApplicationTests {
         verify(productRepository).findAll();
     }
 
+    // TEST 2: Create a product
     @Test
     void shouldCreateProduct() {
+
         when(productRepository.save(any(Product.class)))
                 .thenReturn(testProduct);
 
@@ -65,8 +71,10 @@ class ShopApiApplicationTests {
         verify(productRepository).save(any(Product.class));
     }
 
+    // TEST 3: Search products by name
     @Test
     void shouldSearchProducts() {
+
         when(productRepository.findByNameContainingIgnoreCase("Dell"))
                 .thenReturn(List.of(testProduct));
 
@@ -75,5 +83,8 @@ class ShopApiApplicationTests {
 
         assertEquals(1, products.size());
         assertEquals("Dell Laptop", products.get(0).getName());
+
+        verify(productRepository)
+                .findByNameContainingIgnoreCase("Dell");
     }
 }
